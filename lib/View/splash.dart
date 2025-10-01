@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:final_project/Pages/sign_in.dart';
+import 'package:final_project/View/Login.dart';
 
 class Splash extends StatelessWidget {
   const Splash({super.key});
@@ -22,9 +22,9 @@ class Splash extends StatelessWidget {
             SizedBox(height: 30),
             IconButton(
               onPressed: () {
-                Navigator.push(
+                Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => SignIn()),
+                  MaterialPageRoute(builder: (context) => Login()),
                 );
               },
 

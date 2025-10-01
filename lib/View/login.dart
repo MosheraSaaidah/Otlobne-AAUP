@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:final_project/View/registration.dart';
+import 'package:final_project/Shared/form_fields.dart';
 import 'package:final_project/Controllers/form_controller.dart';
-import 'package:final_project/Pages/sign_up.dart';
 
-class SignIn extends StatefulWidget {
-  const SignIn({super.key});
+class Login extends StatefulWidget {
+  const Login({super.key});
 
   @override
-  State<SignIn> createState() => _SignInState();
+  State<Login> createState() => _LoginState();
 }
 
-class _SignInState extends State<SignIn> {
+class _LoginState extends State<Login> {
   final formKey = GlobalKey<FormState>();
+  final FormController _controller = FormController();
+
   @override
   void dispose() {
-    disposeControllers();
+    _controller.disposeControllers();
     super.dispose();
   }
 
@@ -35,11 +38,11 @@ class _SignInState extends State<SignIn> {
                   fit: BoxFit.contain,
                   alignment: Alignment.center,
                 ),
-                buildNameField(),
-                SizedBox(height: 15),
-                buildEmailField(),
-                SizedBox(height: 15),
-                buildPasswordField(),
+                FormFields.buildNameField(_controller.nameController),
+                const SizedBox(height: 12),
+                FormFields.buildEmailField(_controller.emailController),
+                const SizedBox(height: 12),
+                FormFields.buildPasswordField(_controller.passwordController),
                 SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -51,9 +54,11 @@ class _SignInState extends State<SignIn> {
                     // SizedBox(width: 100),
                     TextButton(
                       onPressed: () {
-                        Navigator.push(
+                        Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(builder: (context) => SignUp()),
+                          MaterialPageRoute(
+                            builder: (context) => Registration(),
+                          ),
                         );
                       },
                       child: const Text('Create Account ?'),
@@ -62,7 +67,14 @@ class _SignInState extends State<SignIn> {
                 ),
 
                 SizedBox(height: 60),
-                signInButton(context, formKey),
+                ElevatedButton(
+                  onPressed: () {
+                    if (formKey.currentState!.validate()) {
+                      _controller.handleLogin(context);
+                    }
+                  },
+                  child: const Text("Login"),
+                ),
               ],
             ),
           ),
@@ -71,6 +83,6 @@ class _SignInState extends State<SignIn> {
     );
   }
 }
-// Widget signIn() {
+// Widget Login() {
 
 // }
