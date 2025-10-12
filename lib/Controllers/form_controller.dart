@@ -1,7 +1,7 @@
-import 'package:final_project/View/login.dart';
+import 'package:final_project/view/login.dart';
 import 'package:flutter/material.dart';
 
-import 'package:final_project/View/home.dart';
+import 'package:final_project/view/home.dart';
 import 'package:final_project/Models/user.dart';
 import 'package:final_project/Models/user_manager.dart';
 

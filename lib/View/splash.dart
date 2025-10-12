@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:final_project/View/Login.dart';
+import 'package:final_project/view/Login.dart';
 
 class Splash extends StatelessWidget {
   const Splash({super.key});

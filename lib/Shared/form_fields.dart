@@ -77,7 +77,7 @@ class FormFields {
   static Widget buildPasswordField(TextEditingController controller) {
     return TextFormField(
       controller: controller,
-
+      obscureText: true,
       decoration: InputDecoration(
         labelText: 'Password',
         hintText: 'Enter your Password',
@@ -115,7 +115,7 @@ class FormFields {
   static Widget buildConfirmPasswordField(TextEditingController controller) {
     return TextFormField(
       controller: controller,
-
+      obscureText: true,
       decoration: InputDecoration(
         labelText: 'Confirm Password',
         hintText: 'Confirm your Password',
@@ -149,5 +149,4 @@ class FormFields {
       },
     );
   }
-
 }

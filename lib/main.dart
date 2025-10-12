@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:final_project/View/splash.dart';
+import 'package:final_project/view/splash.dart';
 
 void main() {
   runApp(App());

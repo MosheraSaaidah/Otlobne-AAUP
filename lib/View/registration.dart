@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:final_project/Controllers/form_controller.dart';
-import 'package:final_project/View/login.dart';
+import 'package:final_project/controllers/form_controller.dart';
+import 'package:final_project/view/login.dart';
 import 'package:final_project/Shared/form_fields.dart';
 
 class Registration extends StatefulWidget {
