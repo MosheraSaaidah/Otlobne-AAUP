@@ -21,7 +21,7 @@ class App extends StatelessWidget {
         ).copyWith(secondary: Colors.black),
         useMaterial3: true,
       ),
-      home: Splash(),
+      student_home_page.dart: Splash(),
     );
   }
 }
