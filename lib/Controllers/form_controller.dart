@@ -1,10 +1,8 @@
-import 'package:final_project/View/home.dart';
 import 'package:final_project/view/login.dart';
 import 'package:flutter/material.dart';
-
-import 'package:final_project/view/student/student_home_page.dart';
 import 'package:final_project/Models/user.dart';
 import 'package:final_project/Models/user_manager.dart';
+import 'package:final_project/view/student/student_home_page.dart';
 
 class FormController {
   final TextEditingController nameController = TextEditingController();
@@ -55,7 +53,7 @@ class FormController {
       ).showSnackBar(SnackBar(content: Text("Welcome ${user.userName}!")));
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) =>student_home_page()),
+        MaterialPageRoute(builder: (context) => StudentHomePage()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
