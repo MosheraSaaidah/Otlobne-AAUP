@@ -1,43 +1,38 @@
 class OrderModel {
-  int id;
-  int taxiId;
-  String taxiName;
-  String location;
-  String studentName;
-  String status; // active or completed
-  String? createdAt;
+  final int index; // رقم العنصر داخل Hive
+  final int taxiId;
+  final String taxiName;
+  final String location;
+  final String studentName;
+  final String status;
 
   OrderModel({
-    required this.id,
+    required this.index,
     required this.taxiId,
     required this.taxiName,
     required this.location,
     required this.studentName,
     required this.status,
-    this.createdAt,
   });
 
-  factory OrderModel.fromMap(Map<String, dynamic> map) {
+  factory OrderModel.fromMap(Map<String, dynamic> map, int index) {
     return OrderModel(
-      id: map['id'],
+      index: index,
       taxiId: map['taxiId'],
       taxiName: map['taxiName'],
       location: map['location'],
       studentName: map['studentName'],
       status: map['status'],
-      createdAt: map['createdAt'],
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      "id": id,
       "taxiId": taxiId,
       "taxiName": taxiName,
       "location": location,
       "studentName": studentName,
       "status": status,
-      "createdAt": createdAt,
     };
   }
 }

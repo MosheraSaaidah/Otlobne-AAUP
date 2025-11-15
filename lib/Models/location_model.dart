@@ -1,25 +1,24 @@
 class LocationPlace {
-  int id;
-  String name;
-  String category;
+  final int index;
+  final String name;
+  final String category;
 
   LocationPlace({
-    required this.id,
+    required this.index,
     required this.name,
     required this.category,
   });
 
-  factory LocationPlace.fromMap(Map<String, dynamic> map) {
+  factory LocationPlace.fromMap(Map<String, dynamic> map, int index) {
     return LocationPlace(
-      id: map['id'],
-      name: map['name'],
-      category: map['category'],
+      index: index,
+      name: map['name'] ?? "",
+      category: map['category'] ?? "",
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      "id": id,
       "name": name,
       "category": category,
     };

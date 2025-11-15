@@ -1,14 +1,13 @@
-
 import 'package:flutter/material.dart';
 
 import '../../controllers/taxi_controller.dart';
 import '../../controllers/location_controller.dart';
 import '../../controllers/order_controller.dart';
+
 import '../../models/taxi_model.dart';
 import '../../models/location_model.dart';
 import '../../models/order_model.dart';
 import '../../utils/sms_service.dart';
-
 
 class StudentHomePage extends StatefulWidget {
   @override
@@ -16,17 +15,17 @@ class StudentHomePage extends StatefulWidget {
 }
 
 class _StudentHomePageState extends State<StudentHomePage> {
-  // ----------- Controllers ------------
   final TaxiController taxiController = TaxiController();
   final LocationController locationController = LocationController();
   final OrderController orderController = OrderController();
 
-  // ----------- UI State ------------
   List<Taxi> availableTaxis = [];
   List<String> categories = ["بوابة", "سكن", "مطعم", "كافيه", "سوبرماركت"];
   List<LocationPlace> filteredLocations = [];
 
   Taxi? selectedTaxi;
+  int? selectedTaxiIndex;
+
   String? selectedCategory;
   LocationPlace? selectedLocation;
 
@@ -40,44 +39,52 @@ class _StudentHomePageState extends State<StudentHomePage> {
     _loadInitialData();
   }
 
-  // تحميل البيانات من الـ Database
   Future<void> _loadInitialData() async {
     setState(() => isLoading = true);
 
     availableTaxis = await taxiController.getAvailableTaxis();
     activeOrder = await orderController.getActiveOrder();
 
-    setState(() {
-      isLoading = false;
-    });
+    setState(() => isLoading = false);
   }
 
-  // تحميل الأماكن حسب النوع
   Future<void> _loadLocationsByCategory(String category) async {
-    filteredLocations =
-        await locationController.getLocationsByCategory(category);
+    //print("🔍 Loading locations for category: $category");
+
+    filteredLocations = await locationController.getLocationsByCategory(
+      category,
+    );
+
+    //print("🔍 Loaded ${filteredLocations.length} locations");
+
+    for (var loc in filteredLocations) {
+      print("📍 ${loc.name} - ${loc.category}");
+    }
+
     setState(() {});
   }
 
-  // إنشاء الطلب
   Future<void> _createOrder() async {
     if (selectedTaxi == null || selectedLocation == null) return;
 
     final newOrder = OrderModel(
-      id: 0,
-      taxiId: selectedTaxi!.id,
+      index: 0, // سيتم تعيينه تلقائيًا بواسطة Hive
+      taxiId: selectedTaxiIndex!,
       taxiName: selectedTaxi!.name,
       location: selectedLocation!.name,
-      studentName: "Student Name", // لاحقًا نجيب اسم الطالب
+      studentName: "Student",
       status: "active",
     );
 
     await orderController.createOrder(newOrder);
-    await taxiController.setTaxiAvailability(selectedTaxi!.id, false);
 
+    //  جعل التاكسي غير متاح
+    await taxiController.setTaxiAvailability(selectedTaxiIndex!, false);
+
+    // إرسال SMS (وهمي)
     SmsService.sendTaxiSms(
       selectedTaxi!.phone,
-      "تم طلبك من الطالب. الموقع: ${selectedLocation!.name}. الرجاء عمل رنّة عند إنهاء الطلب.",
+      "تم طلبك من الطالب. الموقع: ${selectedLocation!.name}. الرجاء عمل رنّة عند انتهاء الطلب.",
     );
 
     activeOrder = newOrder;
@@ -85,77 +92,105 @@ class _StudentHomePageState extends State<StudentHomePage> {
     setState(() {});
   }
 
-  // إنهاء الطلب
   Future<void> _finishOrder() async {
     if (activeOrder == null) return;
 
-    await orderController.finishOrder(activeOrder!.id);
+    setState(() {
+      isLoading = true;
+    });
+
+    // 1) إنهاء الطلب في قاعدة البيانات
+    await orderController.finishOrder(activeOrder!);
+
+    // 2) إعادة التاكسي لحالة "متاح"
     await taxiController.setTaxiAvailability(activeOrder!.taxiId, true);
 
+    // 3) مسح الطلب من الواجهة
     activeOrder = null;
 
+    // 4) إعادة تحميل البيانات من Hive
     await _loadInitialData();
 
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text("✔️ تم إنهاء الطلب")));
+    // 5) Reset كل الخيارات حتى تختفي DropDown الثالثة
+    selectedTaxi = null;
+    selectedTaxiIndex = null;
+    selectedCategory = null;
+    selectedLocation = null;
+    filteredLocations = [];
+
+    setState(() {
+      isLoading = false;
+    });
+
+    // 6) رسالة نجاح
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text("✔️ تم إنهاء الطلب")));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Otlobne AAUP"),
+        title: const Text("Otlobne AAUP"),
         backgroundColor: Colors.amber,
       ),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : _buildContent(),
+      body:
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _buildContent(),
     );
   }
 
   Widget _buildContent() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
-
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
-          // ----------- عرض الطلب الحالي ------------
           if (activeOrder != null) _activeOrderCard(),
 
           if (activeOrder == null) ...[
             _buildTaxiDropdown(),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             _buildCategoryDropdown(),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             if (selectedCategory != null) _buildLocationDropdown(),
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
             _buildRequestButton(),
-          ]
+          ],
         ],
       ),
     );
   }
 
-  // -------- Widgets --------
-
   Widget _buildTaxiDropdown() {
     return DropdownButtonFormField<Taxi>(
       decoration: _inputDecoration("اختر التاكسي"),
-      items: availableTaxis
-          .map((t) => DropdownMenuItem(value: t, child: Text(t.name)))
-          .toList(),
-      onChanged: (v) => setState(() => selectedTaxi = v),
+      items:
+          availableTaxis.map((t) {
+            int index = availableTaxis.indexOf(t);
+            return DropdownMenuItem(
+              value: t,
+              child: Text(t.name),
+              onTap: () {
+                selectedTaxiIndex = index;
+              },
+            );
+          }).toList(),
+      onChanged: (v) {
+        setState(() => selectedTaxi = v);
+      },
     );
   }
 
   Widget _buildCategoryDropdown() {
     return DropdownButtonFormField<String>(
       decoration: _inputDecoration("اختر نوع المكان"),
-      items: categories
-          .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-          .toList(),
+      items:
+          categories
+              .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+              .toList(),
       onChanged: (v) async {
         selectedCategory = v;
         selectedLocation = null;
@@ -167,9 +202,10 @@ class _StudentHomePageState extends State<StudentHomePage> {
   Widget _buildLocationDropdown() {
     return DropdownButtonFormField<LocationPlace>(
       decoration: _inputDecoration("اختر المكان"),
-      items: filteredLocations
-          .map((l) => DropdownMenuItem(value: l, child: Text(l.name)))
-          .toList(),
+      items:
+          filteredLocations
+              .map((l) => DropdownMenuItem(value: l, child: Text(l.name)))
+              .toList(),
       onChanged: (v) => setState(() => selectedLocation = v),
     );
   }
@@ -178,10 +214,10 @@ class _StudentHomePageState extends State<StudentHomePage> {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.amber,
-        minimumSize: Size(double.infinity, 50),
+        minimumSize: const Size(double.infinity, 50),
       ),
       onPressed: _createOrder,
-      child: Text("اطلب الآن", style: TextStyle(color: Colors.black)),
+      child: const Text("اطلب الآن", style: TextStyle(color: Colors.black)),
     );
   }
 
@@ -191,28 +227,26 @@ class _StudentHomePageState extends State<StudentHomePage> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("الطلب الحالي",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            SizedBox(height: 10),
-
+            const Text(
+              "الطلب الحالي",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
             Text("التاكسي: ${activeOrder!.taxiName}"),
             Text("المكان: ${activeOrder!.location}"),
-            Text("الحالة: Active"),
-
-            SizedBox(height: 20),
-
+            const Text("الحالة: Active"),
+            const SizedBox(height: 20),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
-                minimumSize: Size(double.infinity, 50),
+                minimumSize: const Size(double.infinity, 50),
               ),
               onPressed: _finishOrder,
-              child: Text("✔️ إنهاء الطلب"),
-            )
+              child: const Text("✔️ إنهاء الطلب"),
+            ),
           ],
         ),
       ),
@@ -228,7 +262,3 @@ class _StudentHomePageState extends State<StudentHomePage> {
     );
   }
 }
-
-
-
-

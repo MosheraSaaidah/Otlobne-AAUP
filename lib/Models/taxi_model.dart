@@ -1,22 +1,21 @@
 class Taxi {
-  int id;
-  String name;
-  String phone;
-  bool isActive;
-  bool isAvailable;
+  final int index; // رقم التاكسي في Hive
+  final String name;
+  final String phone;
+  final bool isActive;
+  final bool isAvailable;
 
   Taxi({
-    required this.id,
+    required this.index,
     required this.name,
     required this.phone,
     required this.isActive,
     required this.isAvailable,
   });
 
-  // لتحويل Map → Taxi
-  factory Taxi.fromMap(Map<String, dynamic> map) {
+  factory Taxi.fromMap(Map<String, dynamic> map, int index) {
     return Taxi(
-      id: map['id'],
+      index: index,
       name: map['name'],
       phone: map['phone'],
       isActive: map['isActive'] == 1,
@@ -24,10 +23,8 @@ class Taxi {
     );
   }
 
-  // لتحويل Taxi → Map
   Map<String, dynamic> toMap() {
     return {
-      "id": id,
       "name": name,
       "phone": phone,
       "isActive": isActive ? 1 : 0,

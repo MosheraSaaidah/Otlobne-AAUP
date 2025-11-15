@@ -1,53 +1,25 @@
-import '../database/db_helper.dart';
-import '../models/location_model.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import '../models/order_model.dart';
 
 class OrderController {
-  final db = DBHelper.instance;
+  final Box orderBox = Hive.box('orders');
 
-  // إنشاء طلب جديد
-  Future<void> createOrder(OrderModel order) async {
-    await db.insertOrder({
-      "taxiId": order.taxiId,
-      "taxiName": order.taxiName,
-      "location": order.location,
-      "studentName": order.studentName,
-      "status": "active",
-    });
-  }
-
-  // جلب الطلب الحالي الوحيد
   Future<OrderModel?> getActiveOrder() async {
-    final result = await db.getActiveOrder();
-
-    if (result == null) return null;
-
-    return OrderModel(
-      id: result['id'],
-      taxiId: result['taxiId'],
-      taxiName: result['taxiName'],
-      location: result['location'],
-      studentName: result['studentName'],
-      status: result['status'],
-    );
+    for (int i = 0; i < orderBox.length; i++) {
+      final map = Map<String, dynamic>.from(orderBox.getAt(i));
+      final order = OrderModel.fromMap(map, i);
+      if (order.status == "active") return order;
+    }
+    return null;
   }
 
-  // إنهاء الطلب (تغيير الحالة)
-  Future<void> finishOrder(int id) async {
-    await db.finishOrder(id);
+  Future<void> createOrder(OrderModel order) async {
+    await orderBox.add(order.toMap());
   }
 
-  // جلب كل الطلبات المكتملة
-  Future<List<OrderModel>> getFinishedOrders() async {
-    final data = await db.getCompletedOrders();
-
-    return data.map((e) => OrderModel(
-      id: e['id'],
-      taxiId: e['taxiId'],
-      taxiName: e['taxiName'],
-      location: e['location'],
-      studentName: e['studentName'],
-      status: e['status'],
-    )).toList();
+  Future<void> finishOrder(OrderModel order) async {
+    final map = order.toMap();
+    map['status'] = "completed";
+    await orderBox.putAt(order.index, map);
   }
 }
